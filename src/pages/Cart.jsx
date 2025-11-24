@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ordersApi } from '../services/api'
+import { ordersApi } from '../api/api'
 
 export default function Carrito(){
   const [items, setItems] = useState([])

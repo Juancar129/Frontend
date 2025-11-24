@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { productsApi } from '../services/api'
+import { productsApi } from '../api/api'
 import ProductCard from '../components/ProductCard'
 
 export default function Productos(){
