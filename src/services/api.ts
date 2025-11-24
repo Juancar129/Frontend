@@ -1,47 +1,74 @@
-import axios from 'axios';
+import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const API_URL = "http://localhost:3000"; 
+
+
+export const loadToken = () => {
+  return localStorage.getItem("token");
+};
+
+export const saveToken = (token: string) => {
+  localStorage.setItem("token", token);
+};
+
+export const removeToken = () => {
+  localStorage.removeItem("token");
+};
+
 
 export const api = axios.create({
   baseURL: API_URL,
 });
 
-// Cargar token desde localStorage si existe
-export function loadToken() {
-  const token = localStorage.getItem('token');
+
+api.interceptors.request.use((config) => {
+  const token = loadToken();
   if (token) {
-    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    config.headers.Authorization = `Bearer ${token}`;
   }
-}
+  return config;
+});
 
-// Login / Register
-export const authApi = {
-  register: (data) => api.post('/auth/register', data),
-  login: (data) => api.post('/auth/login', data),
-  profile: () => api.get('/users/profile'),
+
+export const login = async (email: string, password: string) => {
+  const res = await api.post("/auth/login", { email, password });
+  saveToken(res.data.token);
+  return res.data;
 };
 
-// Products
-export const productsApi = {
-  getAll: () => api.get('/products'),
-  getById: (id) => api.get(`/products/${id}`),
-  create: (data) => api.post('/products', data),
+export const register = async (email: string, password: string) => {
+  const res = await api.post("/auth/register", { email, password });
+  return res.data;
 };
 
-// Cart
-export const cartApi = {
-  add: (data) => api.post('/cart/add', data),
+export const getProfile = async () => {
+  const res = await api.get("/users/profile");
+  return res.data;
 };
 
-// Orders
-export const ordersApi = {
-  create: (data) => api.post('/orders', data),
+export const getProducts = async () => {
+  const res = await api.get("/products");
+  return res.data;
 };
 
-// PayPal
-export const paypalApi = {
-  createOrder: (data) => api.post('/paypal/create', data),
-  captureOrder: (orderId) => api.post(`/paypal/capture/${orderId}`),
+
+export const addToCart = async (productId: number, quantity: number) => {
+  const res = await api.post("/cart/add", { productId, quantity });
+  return res.data;
 };
 
-export default api;
+export const createOrder = async (items: any[], total: number) => {
+  const res = await api.post("/orders", { items, total });
+  return res.data;
+};
+
+
+export const paypalCreate = async (total: number) => {
+  const res = await api.post("/paypal/create", { total });
+  return res.data;
+};
+
+export const paypalCapture = async (orderId: string) => {
+  const res = await api.post(`/paypal/capture/${orderId}`);
+  return res.data;
+};

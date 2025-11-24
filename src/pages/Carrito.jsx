@@ -4,7 +4,7 @@ import { ordersApi } from '../services/api'
 export default function Carrito(){
   const [items, setItems] = useState([])
 
-  // Simple: aquí podrías obtener el carrito desde tu backend, pero ya depende de tu implementación.
+
   useEffect(()=> {
     const raw = localStorage.getItem('cart') || '[]'
     setItems(JSON.parse(raw))
