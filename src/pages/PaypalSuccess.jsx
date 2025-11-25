@@ -1,57 +1,28 @@
-import { useEffect, useState } from "react";
-import api from "../api/api";
-import { useSearchParams } from "react-router-dom";
+import { api } from "../api/api";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function PaypalSuccess() {
-  const [params] = useSearchParams();
-  const [orderResult, setOrderResult] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const token = params.get("token");
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const capture = async () => {
+    (async () => {
       try {
-        const res = await api.post(`/paypal/capture/${token}`);
-        setOrderResult(res.data);
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get("token");
+
+        const res = await api.post(`/paypal/capture/${orderId}`);
+
+        console.log("Pago capturado:", res.data);
+        alert("Pago exitoso");
+
+        navigate("/");
       } catch (err) {
         console.error(err);
-        setOrderResult({ error: true });
-      } finally {
-        setLoading(false);
+        alert("Error al capturar pago");
       }
-    };
+    })();
+  }, []);
 
-    capture();
-  }, [token]);
-
-  if (loading) return <h2>Capturando pago...</h2>;
-
-  if (orderResult?.error)
-    return <h2>Error al capturar el pago. Intenta nuevamente.</h2>;
-
-  return (
-    <div style={{ padding: "20px" }}>
-      <h1>Pago Completado</h1>
-      <h3>Gracias por tu compra</h3>
-
-      <p><b>ID de orden:</b> {orderResult.orderId}</p>
-      <p><b>Total pagado:</b> ${orderResult.total}</p>
-
-      <button
-        onClick={() => (window.location.href = "/")}
-        style={{
-          marginTop: "20px",
-          background: "black",
-          color: "white",
-          padding: "10px 15px",
-          borderRadius: "8px",
-          border: "none",
-          cursor: "pointer"
-        }}
-      >
-        Volver al inicio
-      </button>
-    </div>
-  );
+  return <h1>Procesando pago...</h1>;
 }

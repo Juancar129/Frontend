@@ -1,20 +1,20 @@
 import { useState, useEffect } from 'react'
-import { productsApi } from '../api/api'
+import { getProducts } from '../api/api'   // ⬅️ AQUÍ EL CAMBIO
 import ProductCard from '../components/ProductCard'
 
-export default function Productos(){
-  const [products,setProducts] = useState([])
+export default function Productos() {
+  const [products, setProducts] = useState([])
 
-  useEffect(()=>{
-    (async()=>{
+  useEffect(() => {
+    (async () => {
       try {
-        const res = await productsApi.getAll()
+        const res = await getProducts()   // ⬅️ AQUÍ EL CAMBIO
         setProducts(res)
-      } catch (err){
+      } catch (err) {
         console.error(err)
       }
     })()
-  },[])
+  }, [])
 
   return (
     <div className="container">
