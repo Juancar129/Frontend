@@ -1,28 +1,29 @@
-import { useEffect, useState } from 'react'
-import { authApi } from '../api/api'
+import { useEffect, useState } from "react";
+import { getProfile } from "../api/api";
 
-export default function Perfil(){
-  const [user, setUser] = useState(null)
+export default function Profile() {
+  const [user, setUser] = useState(null);
 
-  useEffect(()=>{
-    (async()=>{
-      try {
-        const res = await authApi.profile()
-        setUser(res.data)
-      } catch (err){
-        console.error(err)
-      }
-    })()
-  },[])
+  useEffect(() => {
+    loadUser();
+  }, []);
 
-  if(!user) return <div className="container">Cargando...</div>
+  async function loadUser() {
+    try {
+      const data = await getProfile();
+      setUser(data);
+    } catch (err) {
+      console.error("Error cargando perfil:", err);
+    }
+  }
+
+  if (!user) return <p>Cargando...</p>;
 
   return (
-    <div className="container">
-      <h2>Perfil</h2>
-      <p><b>Nombre:</b> {user.name}</p>
-      <p><b>Email:</b> {user.email}</p>
-      <p><b>Rol:</b> {user.role}</p>
+    <div>
+      <h2>Mi Perfil</h2>
+      <p><strong>Nombre:</strong> {user.name}</p>
+      <p><strong>Email:</strong> {user.email}</p>
     </div>
-  )
+  );
 }

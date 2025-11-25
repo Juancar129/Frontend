@@ -9,7 +9,7 @@ export default function Productos(){
     (async()=>{
       try {
         const res = await productsApi.getAll()
-        setProducts(res.data)
+        setProducts(res)
       } catch (err){
         console.error(err)
       }

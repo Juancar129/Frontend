@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect } from "react";
-import { API } from "../api/api";
+import { api, loadToken, saveToken, removeToken } from "../api/api";
 
 export const AuthContext = createContext();
 
@@ -11,26 +11,29 @@ export function AuthProvider({ children }) {
   }, []);
 
   async function login(email, password) {
-    const res = await API.post("/auth/login", { email, password });
-    localStorage.setItem("token", res.data.access_token);
+    const res = await api.post("/auth/login", { email, password });
+
+    
+    saveToken(res.data.token);
+
     await checkProfile();
   }
 
   async function register(data) {
-    await API.post("/auth/register", data);
+    await api.post("/auth/register", data);
   }
 
   async function checkProfile() {
     try {
-      const res = await API.get("/users/profile");
+      const res = await api.get("/users/profile");
       setUser(res.data);
-    } catch {
+    } catch (err) {
       setUser(null);
     }
   }
 
   function logout() {
-    localStorage.removeItem("token");
+    removeToken();
     setUser(null);
   }
 

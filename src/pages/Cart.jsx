@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
-import { ordersApi } from '../api/api'
+import { createOrder } from '../api/api'
 
 export default function Carrito(){
   const [items, setItems] = useState([])
-
 
   useEffect(()=> {
     const raw = localStorage.getItem('cart') || '[]'
@@ -13,8 +12,8 @@ export default function Carrito(){
   const checkout = async () => {
     try {
       const total = items.reduce((s,i)=> s + i.price * i.quantity, 0)
-      const res = await ordersApi.create({ total, items })
-      alert('Orden creada: ' + res.data.id)
+      const res = await createOrder(items, total)
+      alert('Orden creada: ' + res.id)
       localStorage.removeItem('cart')
       setItems([])
     } catch (err){
