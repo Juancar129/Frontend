@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 
@@ -6,21 +6,67 @@ export default function Navbar() {
   const { user, logout } = useContext(AuthContext);
 
   return (
-    <nav>
-      <Link to="/">Tienda</Link>
-      <Link to="/cart">Carrito</Link>
+    <header className="ts-navbar">
+      <div className="ts-navbar-inner">
+        {/* LOGO */}
+        <Link to="/" className="ts-logo">
+          <div className="ts-logo-icon">🧠</div>
+          <span className="ts-logo-text">
+            Trusted<span>Stack</span>
+          </span>
+        </Link>
 
-      {user ? (
-        <>
-          <Link to="/profile">{user.email}</Link>
-          <button onClick={logout}>Salir</button>
-        </>
-      ) : (
-        <>
-          <Link to="/login">Entrar</Link>
-          <Link to="/register">Crear cuenta</Link>
-        </>
-      )}
-    </nav>
+        {/* LINKS PRINCIPALES */}
+        <nav className="ts-nav-links">
+          <NavLink to="/" className="ts-nav-link">
+            Inicio
+          </NavLink>
+          <button className="ts-nav-link ts-nav-link-btn" type="button">
+            PCs
+          </button>
+          <button className="ts-nav-link ts-nav-link-btn" type="button">
+            Laptops
+          </button>
+          <button className="ts-nav-link ts-nav-link-btn" type="button">
+            Celulares
+          </button>
+          <button className="ts-nav-link ts-nav-link-btn" type="button">
+            Componentes
+          </button>
+        </nav>
+
+        {/* ACCIONES DERECHA */}
+        <div className="ts-nav-actions">
+          {user ? (
+            <>
+              <span className="ts-user-label">
+                {user.email}
+              </span>
+              <button onClick={logout} className="ts-btn ts-btn-ghost">
+                Cerrar sesión
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="ts-nav-link ts-nav-auth">
+                Iniciar Sesión
+              </Link>
+              <Link to="/register" className="ts-btn ts-btn-primary">
+                Registrarse
+              </Link>
+            </>
+          )}
+
+          <a href="#contacto" className="ts-nav-link ts-contact-link">
+            Contacto
+          </a>
+
+          <Link to="/cart" className="ts-cart">
+            <span className="ts-cart-icon">🛒</span>
+            <span className="ts-cart-badge">3</span>
+          </Link>
+        </div>
+      </div>
+    </header>
   );
 }
