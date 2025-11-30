@@ -26,10 +26,11 @@ export default function Navbar() {
 Inicio
 </NavLink>
 
-<NavLink to="/products?category=PCs" className="ts-nav-link">PCs</NavLink>
-<NavLink to="/products?category=Laptops" className="ts-nav-link">Laptops</NavLink>
-<NavLink to="/products?category=Celulares" className="ts-nav-link">Celulares</NavLink>
- <NavLink to="/products?category=Componentes" className="ts-nav-link">Componentes</NavLink>
+<NavLink to="/category/PCs" className="ts-nav-link">PCs</NavLink>
+<NavLink to="/category/Laptops" className="ts-nav-link">Laptops</NavLink>
+<NavLink to="/category/Celulares" className="ts-nav-link">Celulares</NavLink>
+<NavLink to="/category/Componentes" className="ts-nav-link">Componentes</NavLink>
+
 </nav>
 
  <div className="ts-nav-actions">
@@ -61,9 +62,10 @@ Inicio
  </>
  )}
 
- <a href="#contacto" className="ts-nav-link ts-contact-link">
- Contacto
- </a>
+<NavLink to="/contacto" className="ts-nav-link">
+  Contacto
+</NavLink>
+
 
  <Link to="/cart" className="ts-cart">
  <span className="ts-cart-icon">🛒</span>

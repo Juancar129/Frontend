@@ -11,6 +11,9 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import CreateProduct from "./pages/CreateProduct";
 import PaypalSuccess from "./pages/PaypalSuccess";
+import CategoryPage from "./pages/CategoryPage";
+import Contact from "./pages/Contact";
+
 
 export default function App() {
   return (
@@ -20,11 +23,13 @@ export default function App() {
 
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/category/:category" element={<CategoryPage />} />
+
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/contacto" element={<Contact />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
 
