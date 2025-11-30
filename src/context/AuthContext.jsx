@@ -6,14 +6,14 @@ export const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
 
-  useEffect(() => {
-   
-    if (loadToken()) {
-      checkProfile();
-    } else {
+ useEffect(() => {
+ 
+  if (loadToken()) {
+   checkProfile();
+  } else {
         setUser(null); 
     }
-  }, []);
+ }, []);
 
 
 async function login(email, password) {
@@ -30,10 +30,10 @@ async function login(email, password) {
   }
 
 async function checkProfile() {
-    try {
-      const res = await api.get("/users/profile");
-      setUser(res.data);
-    } catch (err) {
+  try {
+   const res = await api.get("/users/profile");
+   setUser(res.data);
+  } catch (err) {
 
       if (err.response && err.response.status === 401) {
         removeToken();
@@ -42,7 +42,7 @@ async function checkProfile() {
        
         setUser(null);
       }
-    }
+  }
 }
   function logout() {
     removeToken();

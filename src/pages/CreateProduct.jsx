@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getProducts } from '../api/api'   // ⬅️ AQUÍ EL CAMBIO
+import { getProducts } from '../api/api'   
 import ProductCard from '../components/ProductCard'
 
 export default function Productos() {
@@ -8,7 +8,7 @@ export default function Productos() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await getProducts()   // ⬅️ AQUÍ EL CAMBIO
+        const res = await getProducts()  
         setProducts(res)
       } catch (err) {
         console.error(err)
