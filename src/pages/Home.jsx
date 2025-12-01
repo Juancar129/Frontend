@@ -11,6 +11,27 @@ export default function Home() {
 
   return (
     <div className="ts-main">
+      {/* Bloque Hero con la nueva clase para estilos */}
+      <div className="ts-hero-banner">
+        {/* Etiqueta de Oferta con degradado */}
+        <div className="ts-offer-tag">
+          <span className="ts-dot"></span>
+          Ofertas especiales hasta **20% OFF**
+        </div>
+
+        {/* Título Principal */}
+        <h1 className="ts-hero-title">
+          La mejor tecnología <span className="ts-gradient-text">al mejor precio</span>
+        </h1>
+
+        {/* Descripción */}
+        <p className="ts-hero-description">
+          Descubre nuestra selección premium de PCs Gaming, Laptops de última
+          generación y Smartphones de de lo mejor. Calidad garantizada y envío
+          rápido.
+        </p>
+      </div>
+
       <h2 className="ts-section-header">Productos</h2>
 
       <div className="ts-product-grid">
@@ -18,24 +39,6 @@ export default function Home() {
           <ProductCard key={p.id} product={p} />
         ))}
       </div>
-
-      {/* 🔽 SECCIÓN CONTACTO SIN ROMPER NADA */}
-      <section id="contacto" className="ts-contact-box">
-        <h2>Contacto y Asesoría Técnica</h2>
-
-        <p>
-          Si adquiriste un producto nuevo, evita forzar componentes, abrir equipos
-          sin conocimiento o instalar software no verificado.
-        </p>
-
-        <p>Para soporte, recuperación de contraseña o dudas:</p>
-
-        <ul>
-          <li>📧 soporte@techstore.com</li>
-          <li>📞 55-1234-5678</li>
-          <li>🛠️ Lunes a Viernes, 9:00 - 18:00</li>
-        </ul>
-      </section>
     </div>
   );
 }

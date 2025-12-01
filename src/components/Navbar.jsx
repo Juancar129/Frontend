@@ -33,6 +33,7 @@ Inicio
 
 </nav>
 
+
  <div className="ts-nav-actions">
  
             {/* 2. ENLACE DE ADMINISTRADOR: Solo visible si el rol es 'admin' */}
@@ -73,6 +74,11 @@ Inicio
  </Link>
  </div>
  </div>
+
+ 
  </header>
  );
+
+
+ 
 }

@@ -1,3 +1,5 @@
+// src/App.jsx
+
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
@@ -13,6 +15,9 @@ import CreateProduct from "./pages/CreateProduct";
 import PaypalSuccess from "./pages/PaypalSuccess";
 import CategoryPage from "./pages/CategoryPage";
 import Contact from "./pages/Contact";
+
+// 🟢 ¡ASEGÚRATE DE IMPORTAR ESTE COMPONENTE!
+import Productos from "./pages/Productos"; 
 
 
 export default function App() {
@@ -34,6 +39,8 @@ export default function App() {
           <Route path="/checkout" element={<Checkout />} />
 
           {/* Admin */}
+    
+          <Route path="/admin" element={<Productos />} /> 
           <Route path="/admin/products/create" element={<CreateProduct />} />
 
           {/* PayPal */}
