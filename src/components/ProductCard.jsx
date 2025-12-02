@@ -1,9 +1,8 @@
 import { Link } from "react-router-dom";
 import { useContext } from "react";
-// Asegúrate de importar tu contexto del carrito
 import { CartContext } from "../context/CartContext"; 
 
-// Formatear moneda MXN (Función auxiliar)
+// FUNCIÓN DE FORMATO: Pesos Mexicanos (MXN)
 const formatCurrency = (amount = 0) => {
   return new Intl.NumberFormat("es-MX", {
     style: "currency",
@@ -20,11 +19,11 @@ const renderStars = (rating) => {
   return stars;
 };
 
-// Componente principal: Acepta 'product' (dato), y props de Admin (isAdmin, onEdit, onDelete)
+// Componente principal
 export default function ProductCard({ product, isAdmin, onEdit, onDelete }) {
   const { addItemToCart } = useContext(CartContext) || {}; 
   
-  // 🟢 CORRECCIÓN DE LA DESESTRUCTURACIÓN: Cláusula de guarda
+  // Cláusula de guarda
   if (!product || !product.id) {
     return null;
   }
@@ -38,13 +37,13 @@ export default function ProductCard({ product, isAdmin, onEdit, onDelete }) {
     discount,
     reviewsCount,
     rating,
-    category,
+    category, 
     images,
   } = product;
 
-  // OBTENER LA URL DE LA IMAGEN PRINCIPAL:
+  // Obtener la URL completa de la imagen
   const mainImageUrl = (images && images.length > 0) 
-    ? images[0].url 
+    ? images[0].fullUrl // Usamos la URL completa generada en Home.jsx
     : "https://via.placeholder.com/600x400?text=Producto+Sin+Imagen"; 
   
   // Lógica defensiva de precios
@@ -54,7 +53,15 @@ export default function ProductCard({ product, isAdmin, onEdit, onDelete }) {
 
   const handleAddToCart = () => {
     if (addItemToCart && product) {
-      addItemToCart(product);
+        
+      
+   
+      const productForCart = {
+          ...product,
+          image: mainImageUrl, 
+      };
+
+      addItemToCart(productForCart); // Enviamos el objeto corregido
     }
   };
 
@@ -65,7 +72,9 @@ export default function ProductCard({ product, isAdmin, onEdit, onDelete }) {
       )}
 
       <div className="ts-product-image">
-        <img src={mainImageUrl} alt={name} loading="lazy" />
+        <Link to={`/product/${id}`}>
+          <img src={mainImageUrl} alt={name} loading="lazy" />
+        </Link>
       </div>
 
       <div className="ts-product-body">
@@ -73,7 +82,9 @@ export default function ProductCard({ product, isAdmin, onEdit, onDelete }) {
           {(category || "Sin Categoría").toUpperCase()}
         </p>
 
-        <h3 className="ts-product-title">{name}</h3>
+        <h3 className="ts-product-title">
+          <Link to={`/product/${id}`}>{name}</Link>
+        </h3>
 
         <p className="ts-product-description">
           {description || "Producto de alta calidad."}
@@ -94,7 +105,7 @@ export default function ProductCard({ product, isAdmin, onEdit, onDelete }) {
           </div>
         </div>
 
-        {/* 🟢 ZONA DE ACCIONES CONDICIONALES (ADMIN vs CLIENTE) */}
+        {/* ZONA DE ACCIONES CONDICIONALES (ADMIN vs CLIENTE) */}
         <div className="ts-product-actions">
           {isAdmin ? (
             // Controles para Administrador

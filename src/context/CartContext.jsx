@@ -63,14 +63,14 @@ export const CartProvider = ({ children }) => {
         );
     };
 
-    //Devuelve el número sin formatear para que Cart.jsx lo formatee
+    // Devuelve el número sin formatear para que Cart.jsx lo formatee
     const getCartTotal = () => {
         return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
     };
 
     const contextValue = {
         cart,
-        cartItemCount,
+        itemCount: cartItemCount, 
         addItemToCart,
         removeItemFromCart,
         incrementQuantity,
