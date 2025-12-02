@@ -4,11 +4,14 @@ import { AuthContext } from "../context/AuthContext";
 import { CartContext } from "../context/CartContext"; 
 
 export default function Navbar() {
+    // Obtiene el estado del usuario (incluye datos y rol) y la función de cierre de sesión
     const { user, logout } = useContext(AuthContext);
 
     // OBTENER EL CONTEO DE ÍTEMS DEL CONTEXTO DEL CARRITO
+    // Asegúrate de que itemCount se obtiene correctamente del contexto
     const { itemCount } = useContext(CartContext); 
 
+    // Determina si el usuario es administrador
     const isAdmin = user && user.role === 'admin'; 
 
     return (
@@ -29,17 +32,17 @@ export default function Navbar() {
                         Inicio
                     </NavLink>
                 
+                    {/* Enlaces de Categorías */}
                     <NavLink to="/category/PCs" className="ts-nav-link">PCs</NavLink>
                     <NavLink to="/category/Laptops" className="ts-nav-link">Laptops</NavLink>
                     <NavLink to="/category/Celulares" className="ts-nav-link">Celulares</NavLink>
                     <NavLink to="/category/Componentes" className="ts-nav-link">Componentes</NavLink>
                 </nav>
 
-
-                {/* ACCIONES (AUTH, ADMIN, CARRITO) */}
+                
                 <div className="ts-nav-actions">
 
-                    {/* Enlace de Administrador (Condicional) */}
+                    {/* Enlace de Administrador (Solo visible para 'admin') */}
                     {isAdmin && (
                         <Link to="/admin" className="ts-nav-link ts-admin-link">
                             Dashboard Admin
@@ -50,7 +53,8 @@ export default function Navbar() {
                     {user ? (
                         <>
                             <span className="ts-user-label">
-                                Hola, **{user.name || user.email}**
+                                {/* Lógica mejorada: Intenta usar el nombre. Si no existe, usa la parte del email antes del @ */}
+                                Hola, {user.name || user.email.split('@')[0]} 
                             </span>
                             <button onClick={logout} className="ts-btn ts-btn-ghost">
                                 Cerrar sesión
@@ -58,6 +62,7 @@ export default function Navbar() {
                         </>
                     ) : (
                         <>
+                            {/* Enlaces para usuarios no logueados */}
                             <Link to="/login" className="ts-nav-link ts-nav-auth">
                                 Iniciar Sesión
                             </Link>
@@ -72,10 +77,11 @@ export default function Navbar() {
                         Contacto
                     </NavLink>
 
-                    {/* Enlace de Carrito */}
+                    {/* Enlace de Carrito con Contador */}
                     <Link to="/cart" className="ts-cart">
                         <span className="ts-cart-icon">🛒</span>
                         {/* MOSTRAR EL CONTEO REAL */}
+                        {/* Usa un contador o 0 si está vacío/no definido */}
                         <span className="ts-cart-badge">{itemCount || 0}</span> 
                     </Link>
                 </div>
