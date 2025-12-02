@@ -1,14 +1,13 @@
-// src/pages/EditProduct.jsx (CÓDIGO FINAL)
-
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { API } from '../api/api'; 
+// Asume que esta ruta es correcta para tu proyecto
 import ProductForm from '../components/ProductForm'; 
 
 const BASE_URL = "http://localhost:3333"; 
 
 export default function EditProduct() {
-    const { id } = useParams();
+    const { id } = useParams(); 
     const navigate = useNavigate();
     const [productData, setProductData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -20,11 +19,12 @@ export default function EditProduct() {
             try {
                 const res = await API.get(`/products/${id}`);
                 
+                // Procesar URLs de imagen para mostrarlas en la edición
                 const fetchedProduct = res.data;
                 if (fetchedProduct.images) {
                     fetchedProduct.images = fetchedProduct.images.map(img => ({
                         ...img,
-                        fullUrl: `${BASE_URL}${img.url}`
+                        fullUrl: `${BASE_URL}${img.url}` // <-- ¡Aquí se crea la URL completa!
                     }));
                 }
 
@@ -41,46 +41,43 @@ export default function EditProduct() {
     }, [id]);
 
 
-    // 2. Función real para guardar los cambios
-    const handleSubmit = async (formData, selectedFiles) => {
-        console.log(`Enviando actualización para ID ${id}:`, formData, "Nuevos archivos:", selectedFiles);
-        
-        // Aquí implementarías la llamada API.patch o API.put con el objeto FormData si hay archivos.
+    // 2. Función para guardar los cambios (Lógica de la API)
+    // Recibe el objeto FormData construido en ProductForm.
+    const handleSubmit = async (dataToSend) => {
+        console.log('Intentando actualizar producto ID:', id, 'con FormData.');
         
         try {
-            // Ejemplo de llamada (DEBES IMPLEMENTAR EL MANEJO DE IMÁGENES Y DATA)
-            // await API.patch(`/products/${id}`, formData); 
+            // Usamos API.patch para enviar la data de actualización y los archivos.
+            // Axios/el navegador establecerá automáticamente el 'Content-Type' como 
+            // 'multipart/form-data' al enviar un objeto FormData.
+            const res = await API.patch(`/products/${id}`, dataToSend); 
             
-            alert(`Producto ID ${id} actualizado con éxito! (Simulación)`);
-            navigate('/admin'); // Regresar al dashboard de productos
+            console.log("Actualización exitosa:", res.data);
+            alert(`Producto ID ${id} actualizado con éxito!`);
+            navigate('/admin'); // Redirigir al dashboard
         } catch (e) {
-            alert('Error al actualizar el producto.');
-            console.error(e);
+            console.error("Error al actualizar el producto:", e);
+            alert('Error al actualizar el producto. Consulte la consola para más detalles.');
         }
     };
 
+    // 3. Manejo de estados de carga y error
     if (isLoading) return <div className="ts-main"><p>Cargando datos del producto...</p></div>;
     if (error) return <div className="ts-main"><p style={{ color: '#ef4444' }}>{error}</p></div>;
     if (!productData) return <div className="ts-main"><p>Producto no encontrado.</p></div>;
 
 
+    // 4. Renderizado con ProductForm
     return (
         <div className="ts-main">
-            <h1>Editar Producto</h1>
-            <p>Asegúrate de que la información sea correcta antes de guardar.</p>
+            <h1>Editar Producto: {productData.name} (ID: {id})</h1>
 
             <ProductForm 
                 initialData={productData} 
                 onSubmit={handleSubmit} 
                 onCancel={() => navigate('/admin')}
-                isEditing={true} // Marcamos que estamos en modo edición
+                isEditing={true} 
             />
-            
-            {/* El botón de cancelar está ahora dentro de ProductForm, puedes eliminar este: */}
-            {/* <button onClick={() => navigate('/admin')} className="ts-btn ts-btn-secondary">
-                Cancelar y volver al Dashboard
-            </button>
-            */}
         </div>
     );
 }
