@@ -97,10 +97,24 @@ export const addToCart = async (productId: number, quantity: number) => {
     return res.data;
 };
 
-export const createOrder = async (items: any[], total: number) => {
+export const createOrder = async (
+    items: { productId: number; quantity: number }[],
+    total: number
+) => {
     const res = await api.post("/orders", { items, total });
     return res.data;
 };
+
+
+export const getOrders = async () => {
+    const res = await api.get("/orders");
+    return res.data;
+};
+export const getOrderById = async (id: number) => {
+    const res = await api.get(`/orders/${id}`);
+    return res.data;
+};
+
 
 
 // FUNCIONES DE PAYPAL
