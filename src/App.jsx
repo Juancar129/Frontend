@@ -17,21 +17,15 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Navbar />
-
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
-
-          {/* Admin */}
-          <Route path="/admin/products/create" element={<CreateProduct />} />
-
-          {/* PayPal */}
+          <Route path="/create-product" element={<CreateProduct />} />
           <Route path="/paypal/success" element={<PaypalSuccess />} />
         </Routes>
       </BrowserRouter>
