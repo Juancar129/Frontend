@@ -1,81 +1,125 @@
-import { useState, useContext } from "react";
+import React, { useState, useContext } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import { Link } from "react-router-dom";
 
-export default function Register() {
+const Register = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const { register } = useContext(AuthContext);
+  const navigate = useNavigate();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError("");
+  };
 
-  async function handleSubmit(e) {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (password !== confirm) {
-      alert("Las contraseñas no coinciden");
-      return;
-    }
+    setError("");
+    setLoading(true);
 
     try {
-      await register(email, password);
-    } catch (error) {
-      console.error("Error al registrarse", error);
-      alert("Hubo un error, intenta con otro correo.");
+      await register(formData);
+      navigate("/");
+    } catch (err) {
+      if (err.response) {
+        let message = "Ocurrio un error al intentar registrar el usuario.";
+
+        if (err.response.status === 400) {
+          const validationErrors = err.response.data.message;
+          if (Array.isArray(validationErrors)) {
+            message = `Error de validacion: ${validationErrors[0]}`;
+          } else if (typeof validationErrors === "string") {
+            message = validationErrors;
+          }
+        } else if (err.response.status === 409) {
+          message = err.response.data.message || "El correo electronico ya esta registrado.";
+        }
+
+        setError(message);
+      } else {
+        setError("No se pudo conectar con el servidor.");
+      }
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <main className="ts-auth-container">
+    <div className="ts-auth-container">
       <div className="ts-auth-card">
-        <h2 className="ts-auth-title">Crear Cuenta</h2>
+        <h1 className="ts-auth-title">
+          <span className="ts-gradient-text">Crear Cuenta</span>
+        </h1>
         <p className="ts-auth-subtitle">
-          Únete a <span className="ts-gradient-text">TrustedStack</span>
+          Registrate para acceder a todos nuestros productos.
         </p>
 
-        <form className="ts-auth-form" onSubmit={handleSubmit}>
-          <label className="ts-input-label">Correo Electrónico</label>
-          <input
-            type="email"
-            className="ts-input"
-            placeholder="ejemplo@correo.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+        <form onSubmit={handleSubmit} className="ts-auth-form">
+          <div>
+            <label htmlFor="name" className="ts-input-label">Nombre</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              className="ts-input"
+              value={formData.name}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-          <label className="ts-input-label">Contraseña</label>
-          <input
-            type="password"
-            className="ts-input"
-            placeholder="•••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <div>
+            <label htmlFor="email" className="ts-input-label">Correo Electronico</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              className="ts-input"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-          <label className="ts-input-label">Confirmar Contraseña</label>
-          <input
-            type="password"
-            className="ts-input"
-            placeholder="•••••••"
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
-            required
-          />
+          <div>
+            <label htmlFor="password" className="ts-input-label">Contrasena</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              className="ts-input"
+              value={formData.password}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-          <button className="ts-btn ts-btn-primary ts-btn-full" type="submit">
-            Registrarme
+          {error && <p style={{ color: "#f87171", fontSize: "14px", fontWeight: "bold" }}>{error}</p>}
+
+          <button
+            type="submit"
+            className="ts-btn ts-btn-primary ts-btn-full"
+            disabled={loading}
+          >
+            {loading ? "Registrando..." : "Registrar"}
           </button>
         </form>
 
         <p className="ts-auth-footer">
-          ¿Ya tienes cuenta?{" "}
+          Ya tienes una cuenta?{" "}
           <Link to="/login" className="ts-link">
-            Inicia sesión
+            Inicia Sesion
           </Link>
         </p>
       </div>
-    </main>
+    </div>
   );
-}
+};
+
+export default Register;

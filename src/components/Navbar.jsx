@@ -1,9 +1,13 @@
 import { Link, NavLink } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
+import { CartContext } from "../context/CartContext";
 
 export default function Navbar() {
-  const { user, logout } = useContext(AuthContext);
+    const { user = null, logout = () => {} } = useContext(AuthContext) || {};
+    const { itemCount = 0 } = useContext(CartContext) || {};
+    const isAdmin = user?.role === "admin";
+    const displayName = user?.name?.trim() || user?.email?.split("@")[0] || "Usuario";
 
   return (
     <header className="ts-navbar">
