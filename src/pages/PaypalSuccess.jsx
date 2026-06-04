@@ -1,50 +1,102 @@
-import { api } from "../api/api";
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useContext, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { paypalCapture } from "../api/api";
+import { CartContext } from "../context/CartContext";
 
 export default function PaypalSuccess() {
-  const navigate = useNavigate();
+    const navigate = useNavigate();
+    const { clearCart } = useContext(CartContext);
+    const hasCapturedRef = useRef(false);
+    const [status, setStatus] = useState("processing");
+    const [message, setMessage] = useState("Estamos confirmando tu pago con PayPal.");
+    const [paypalId, setPaypalId] = useState(null);
 
-  useEffect(() => {
-    // Función asíncrona que se ejecuta una vez al montar el componente
-    (async () => {
-      try {
-        // 1. Extraer los parámetros de la URL (donde PayPal nos redirigió)
-        const urlParams = new URLSearchParams(window.location.search);
-        
-        // El ID de la orden de PayPal viene en el parámetro 'token'
-        const orderId = urlParams.get("token");
+    useEffect(() => {
+        (async () => {
+            if (hasCapturedRef.current) {
+                return;
+            }
 
-        if (!orderId) {
-            console.error("No se encontró el token de la orden en la URL.");
-            alert("Error: ID de orden de PayPal no encontrado.");
-            navigate("/checkout/error"); // Redirige a una página de error
-            return;
-        }
+            hasCapturedRef.current = true;
 
-        // 2. Llamar al backend (NestJS) para CAPTURAR el pago final
-        // Se envía el token JWT automáticamente gracias al interceptor de Axios.
-        const res = await api.post(`/paypal/capture/${orderId}`);
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const orderId = urlParams.get("token");
 
-        // 3. Manejo de éxito
-        console.log("Pago capturado:", res.data);
-        alert("¡Pago exitoso! Tu orden ha sido confirmada.");
+                if (!orderId) {
+                    setStatus("error");
+                    setMessage("No encontramos el ID de la orden de PayPal.");
+                    return;
+                }
 
-        // Redirigir al usuario a la página principal o a su historial de órdenes
-        navigate("/"); 
-      } catch (err) {
-        // 4. Manejo de error
-        console.error("Error al capturar pago:", err.response?.data || err.message);
-        alert("Error al capturar el pago. Por favor, revisa tu historial de órdenes.");
-        navigate("/checkout/error"); // O la ruta que desees para errores de pago
-      }
-    })();
-  }, [navigate]); // navigate se incluye como dependencia de useEffect
+                const res = await paypalCapture(orderId);
 
-  return (
-    <div style={{ padding: "50px", textAlign: "center" }}>
-      <h1>Procesando pago...</h1>
-      <p>No cierres esta ventana. Estamos confirmando tu transacción.</p>
-    </div>
-  );
+                await clearCart();
+                setPaypalId(res.id || orderId);
+                setStatus("success");
+                setMessage("Tu pedido fue comprado con exito. Ya puedes revisarlo en tu historial.");
+            } catch (err) {
+                console.error("Error al capturar pago:", err.response?.data || err.message);
+                setStatus("error");
+                setMessage(
+                    err.response?.data?.message ||
+                    "No se pudo confirmar el pago. Revisa tu historial de ordenes o intenta de nuevo.",
+                );
+            }
+        })();
+    }, [clearCart, navigate]);
+
+    return (
+        <div className="ts-main">
+            <section className={`ts-payment-result ts-payment-${status}`}>
+                <div className="ts-payment-icon">
+                    {status === "processing" && "..."}
+                    {status === "success" && "OK"}
+                    {status === "error" && "!"}
+                </div>
+
+                <p className="ts-detail-category">
+                    {status === "processing" && "Procesando pago"}
+                    {status === "success" && "Compra confirmada"}
+                    {status === "error" && "Pago pendiente de revisar"}
+                </p>
+
+                <h1 className="ts-page-title">
+                    {status === "processing" && "Un momento..."}
+                    {status === "success" && "Pedido comprado con exito"}
+                    {status === "error" && "No pudimos confirmar el pago"}
+                </h1>
+
+                <p className="ts-payment-message">{message}</p>
+
+                {paypalId && (
+                    <p className="ts-muted-text">PayPal ID: {paypalId}</p>
+                )}
+
+                <div className="ts-payment-actions">
+                    {status === "success" && (
+                        <>
+                            <Link to="/profile" className="ts-btn ts-btn-primary">
+                                Ver mis compras
+                            </Link>
+                            <Link to="/" className="ts-btn ts-btn-secondary">
+                                Seguir comprando
+                            </Link>
+                        </>
+                    )}
+
+                    {status === "error" && (
+                        <>
+                            <Link to="/profile" className="ts-btn ts-btn-secondary">
+                                Revisar mis ordenes
+                            </Link>
+                            <button className="ts-btn ts-btn-primary" onClick={() => navigate("/checkout")}>
+                                Volver al checkout
+                            </button>
+                        </>
+                    )}
+                </div>
+            </section>
+        </div>
+    );
 }

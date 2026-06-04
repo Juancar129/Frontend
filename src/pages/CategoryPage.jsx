@@ -3,52 +3,83 @@ import { useEffect, useState } from "react";
 import { API } from "../api/api";
 import ProductCard from "../components/ProductCard";
 
-// URL base de tu API de NestJS para construir la URL completa de la imagen.
-// Asegúrate de que este puerto coincida con tu main.ts (3000 por defecto)
-const BASE_URL = 'http://localhost:3333'; 
+const BASE_URL = "http://localhost:3333";
 
 export default function CategoryPage() {
  const { category } = useParams();
  const [products, setProducts] = useState([]);
+ const [searchTerm, setSearchTerm] = useState("");
+ const [sortMode, setSortMode] = useState("DESTACADOS");
+
+ const visibleProducts = products
+  .filter((product) => {
+   const searchValue = searchTerm.trim().toLowerCase();
+   return (
+    searchValue === "" ||
+    product.name?.toLowerCase().includes(searchValue) ||
+    product.description?.toLowerCase().includes(searchValue)
+   );
+  })
+  .sort((a, b) => {
+   if (sortMode === "PRECIO_ASC") return Number(a.price || 0) - Number(b.price || 0);
+   if (sortMode === "PRECIO_DESC") return Number(b.price || 0) - Number(a.price || 0);
+   if (sortMode === "STOCK") return Number(b.stock || 0) - Number(a.stock || 0);
+   return 0;
+  });
 
  useEffect(() => {
-
-    // productos por categoría directamente (ej: /products/by-category/:category)
   API.get("/products").then((res) => {
    const filtered = res.data
-    // Usamos el campo 'categoria' que definiste para la navegación/visualización
-    .filter((p) => p.category.toLowerCase() === category.toLowerCase()) 
-    .map((p) => {
-            // Ya no es necesario crear un array de imágenes ni usar p.imagen
-            
-            // Mapeamos las imágenes para añadir la URL base necesaria para el frontend
-            const correctedImages = p.images.map(image => ({
-                ...image,
-                // Si la URL es /uploads/imagen.jpg, la convertimos a http://localhost:3000/uploads/imagen.jpg
-                fullUrl: `${BASE_URL}${image.url}` 
-            }));
-
-            return {
-                ...p,
-                // Mantenemos el campo 'category' para ProductCard si lo necesita para filtros o títulos
-                // y usamos el array de imágenes corregido.
-                images: correctedImages, 
-            };
-        });
+    .filter((product) => {
+     const visibleCategory = product.categoria || product.category || "";
+     return visibleCategory.toLowerCase() === category.toLowerCase();
+    })
+    .map((product) => ({
+     ...product,
+     images: (product.images || []).map((image) => ({
+      ...image,
+      fullUrl: `${BASE_URL}${image.url}`,
+     })),
+    }));
 
    setProducts(filtered);
   });
  }, [category]);
 
  return (
-  <div>
+  <div className="ts-main">
+  <div className="ts-section-header">
    <h2>{category}</h2>
-
-   <div className="ts-product-grid">
-    {products.map((p) => (
-     <ProductCard key={p.id} product={p} />
-    ))}
-   </div>
   </div>
- );
+
+  <div className="ts-catalog-controls ts-catalog-controls-compact">
+   <input
+    className="ts-input"
+    value={searchTerm}
+    onChange={(event) => setSearchTerm(event.target.value)}
+    placeholder={`Buscar en ${category}`}
+   />
+   <select
+    className="ts-input"
+    value={sortMode}
+    onChange={(event) => setSortMode(event.target.value)}
+   >
+    <option value="DESTACADOS">Destacados</option>
+    <option value="PRECIO_ASC">Menor precio</option>
+    <option value="PRECIO_DESC">Mayor precio</option>
+    <option value="STOCK">Mayor stock</option>
+   </select>
+  </div>
+
+  <div className="ts-product-grid">
+    {visibleProducts.map((product) => (
+     <ProductCard key={product.id} product={product} />
+    ))}
+  </div>
+
+  {visibleProducts.length === 0 && (
+   <p className="ts-empty-text">No encontramos productos en esta categoria con esos filtros.</p>
+  )}
+ </div>
+);
 }

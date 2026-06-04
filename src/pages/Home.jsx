@@ -2,29 +2,49 @@ import { useEffect, useState } from "react";
 import { API } from "../api/api";
 import ProductCard from "../components/ProductCard";
 
-
-const BASE_URL = "http://localhost:3333"; 
+const BASE_URL = "http://localhost:3333";
 
 export default function Home() {
     const [products, setProducts] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [categoryFilter, setCategoryFilter] = useState("TODAS");
+    const [sortMode, setSortMode] = useState("DESTACADOS");
+
+    const categories = [
+        "TODAS",
+        ...new Set(products.map((product) => product.categoria || product.category).filter(Boolean)),
+    ];
+
+    const visibleProducts = products
+        .filter((product) => {
+            const searchValue = searchTerm.trim().toLowerCase();
+            const category = product.categoria || product.category;
+            const matchesSearch =
+                searchValue === "" ||
+                product.name?.toLowerCase().includes(searchValue) ||
+                product.description?.toLowerCase().includes(searchValue);
+            const matchesCategory = categoryFilter === "TODAS" || category === categoryFilter;
+
+            return matchesSearch && matchesCategory;
+        })
+        .sort((a, b) => {
+            if (sortMode === "PRECIO_ASC") return Number(a.price || 0) - Number(b.price || 0);
+            if (sortMode === "PRECIO_DESC") return Number(b.price || 0) - Number(a.price || 0);
+            if (sortMode === "STOCK") return Number(b.stock || 0) - Number(a.stock || 0);
+            return 0;
+        });
 
     useEffect(() => {
-        // Función para obtener y procesar los productos
         const fetchProducts = async () => {
             try {
                 const res = await API.get("/products");
-                
-                // 🛑 PROCESAMIENTO CLAVE: Añadir la fullUrl a cada imagen
-                const processedProducts = res.data.map(product => {
-                    if (product.images && product.images.length > 0) {
-                        product.images = product.images.map(image => ({
-                            ...image,
-                            // Construye la URL completa
-                            fullUrl: `${BASE_URL}${image.url}` 
-                        }));
-                    }
-                    return product;
-                });
+                const processedProducts = res.data.map((product) => ({
+                    ...product,
+                    images: (product.images || []).map((image) => ({
+                        ...image,
+                        fullUrl: `${BASE_URL}${image.url}`,
+                    })),
+                }));
 
                 setProducts(processedProducts);
             } catch (error) {
@@ -33,40 +53,69 @@ export default function Home() {
         };
 
         fetchProducts();
-    }, []); // Dependencia vacía para que se ejecute solo una vez al montar
+    }, []);
 
     return (
         <div className="ts-main">
-            {/* Bloque Hero con la nueva clase para estilos */}
             <div className="ts-hero-banner">
-                {/* Etiqueta de Oferta con degradado */}
                 <div className="ts-offer-tag">
                     <span className="ts-dot"></span>
-                    Ofertas especiales hasta **20% OFF**
+                    Ofertas especiales hasta 20% OFF
                 </div>
 
-                {/* Título Principal */}
                 <h1 className="ts-hero-title">
-                    La mejor tecnología <span className="ts-gradient-text">al mejor precio</span>
+                    La mejor tecnologia <span className="ts-gradient-text">al mejor precio</span>
                 </h1>
 
-                {/* Descripción */}
                 <p className="ts-hero-description">
-                    Descubre nuestra selección premium de PCs Gaming, Laptops de última
-                    generación y Smartphones de de lo mejor. Calidad garantizada y envío
-                    rápido.
+                    Descubre nuestra seleccion premium de PCs Gaming, laptops de ultima
+                    generacion y smartphones destacados. Calidad garantizada y envio rapido.
                 </p>
             </div>
 
-            <h2 className="ts-section-header">Productos</h2>
+            <div className="ts-section-header">
+                <h2>Productos</h2>
+            </div>
+
+            <div className="ts-catalog-controls">
+                <input
+                    className="ts-input"
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    placeholder="Buscar laptops, celulares, componentes..."
+                />
+                <select
+                    className="ts-input"
+                    value={categoryFilter}
+                    onChange={(event) => setCategoryFilter(event.target.value)}
+                >
+                    {categories.map((category) => (
+                        <option key={category} value={category}>
+                            {category}
+                        </option>
+                    ))}
+                </select>
+                <select
+                    className="ts-input"
+                    value={sortMode}
+                    onChange={(event) => setSortMode(event.target.value)}
+                >
+                    <option value="DESTACADOS">Destacados</option>
+                    <option value="PRECIO_ASC">Menor precio</option>
+                    <option value="PRECIO_DESC">Mayor precio</option>
+                    <option value="STOCK">Mayor stock</option>
+                </select>
+            </div>
 
             <div className="ts-product-grid">
-                {products.map((p) => (
-                    // El ProductCard ya usa la propiedad p.images[0].fullUrl
-                    // Recuerda que ProductCard ha sido corregido para pasar la URL de la imagen al carrito.
-                    <ProductCard key={p.id} product={p} />
+                {visibleProducts.map((product) => (
+                    <ProductCard key={product.id} product={product} />
                 ))}
             </div>
+
+            {visibleProducts.length === 0 && (
+                <p className="ts-empty-text">No encontramos productos con esos filtros.</p>
+            )}
         </div>
     );
 }

@@ -1,131 +1,82 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
-// Valores iniciales por defecto (útiles para la creación)
 const DEFAULT_PRODUCT_STATE = {
-    name: '',
-    description: '',
+    name: "",
+    description: "",
     price: 0,
-    category: '', 
+    stock: 0,
+    category: "",
+    categoria: "",
 };
 
-// Componente de formulario reutilizable para crear y editar
-export default function ProductForm({ initialData = DEFAULT_PRODUCT_STATE, onSubmit, onCancel, isEditing = false }) {
-    
-    // Estados principales
+export default function ProductForm({
+    initialData = DEFAULT_PRODUCT_STATE,
+    onSubmit,
+    onCancel,
+    isEditing = false,
+}) {
     const [formData, setFormData] = useState(initialData);
-    const [selectedFiles, setSelectedFiles] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    // Estado para manejar qué imágenes existentes se quieren eliminar
-    const [imagesToDelete, setImagesToDelete] = useState([]); 
-    
-    // 1. Sincronización de Datos (para el modo Edición)
+
     useEffect(() => {
-        // Inicializa el estado local con los datos cargados del producto.
-        setFormData(initialData);
-        // Resetea las imágenes a eliminar al cargar nuevos datos.
-        setImagesToDelete([]); 
+        setFormData({
+            ...DEFAULT_PRODUCT_STATE,
+            ...initialData,
+        });
     }, [initialData]);
 
-    // 2. Manejo de cambios en campos de texto/número
     const handleChange = (e) => {
         const { name, value, type } = e.target;
-        
-        // Convertir precio a número si es un campo de tipo 'number'
-        const newValue = type === 'number' ? parseFloat(value) : value;
+        const newValue = type === "number" ? Number(value) : value;
 
-        setFormData(prev => ({ ...prev, [name]: newValue }));
+        setFormData((prev) => ({ ...prev, [name]: newValue }));
     };
 
-    // 3. Manejo de cambios en archivos
-    const handleFileChange = (e) => {
-        setSelectedFiles(Array.from(e.target.files));
-    };
-
-    // 4. Marcar/desmarcar una imagen existente para eliminación
-    const handleRemoveExistingImage = (imageId) => {
-        setImagesToDelete(prev => {
-            if (prev.includes(imageId)) {
-                // Si ya está en la lista, la quitamos (deshacer eliminación)
-                return prev.filter(id => id !== imageId);
-            } else {
-                // Si no está, la agregamos (marcar para eliminación)
-                return [...prev, imageId];
-            }
-        });
-    };
-
-    // 5. Manejo del Envío (Construcción de FormData)
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
-        
-        const dataToSend = new FormData();
-        
-        // A. Agregar campos de texto/número
-        // Enviamos el resto del formulario como JSON serializado
-        dataToSend.append('data', JSON.stringify({
-            name: formData.name,
-            description: formData.description,
-            price: formData.price,
-            category: formData.category, 
-            // Incluye todos los demás campos de texto/número
-        }));
-        
-        // B. Agregar archivos (Imágenes) nuevas
-        selectedFiles.forEach((file) => {
-            dataToSend.append(`files`, file); 
-        });
 
-        // C. Agregar la lista de IDs de las imágenes a ELIMINAR
-        dataToSend.append('images_to_delete', JSON.stringify(imagesToDelete));
-
-        // D. Agregar la lista de URLs/IDs de las imágenes a MANTENER
-        // Filtramos las imágenes que *no* están en la lista de eliminación
-        const imagesToKeep = (formData.images || [])
-            .filter(img => !imagesToDelete.includes(img.id))
-            .map(img => img.url); // Enviamos la URL original al backend
-
-        dataToSend.append('images_to_keep', JSON.stringify(imagesToKeep));
-
-
-        // Llamar a la función onSubmit del padre (EditProduct)
-        await onSubmit(dataToSend); 
-        
-        setIsSubmitting(false);
+        try {
+            await onSubmit({
+                name: formData.name,
+                description: formData.description,
+                price: Number(formData.price),
+                stock: Number(formData.stock),
+                category: formData.category,
+                categoria: formData.categoria,
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
-    // 6. Renderizado
     return (
-        <form onSubmit={handleSubmit} className="ts-product-form" encType="multipart/form-data">
-            
+        <form onSubmit={handleSubmit} className="ts-product-form">
             <h3>{isEditing ? `Editando: ${formData.name}` : "Crear Nuevo Producto"}</h3>
 
-            {/* Campo Nombre */}
             <div className="ts-form-group">
                 <label htmlFor="name">Nombre</label>
                 <input
                     type="text"
                     id="name"
                     name="name"
-                    value={formData.name || ''}
+                    value={formData.name || ""}
                     onChange={handleChange}
                     required
                 />
             </div>
 
-            {/* Campo Descripción */}
             <div className="ts-form-group">
-                <label htmlFor="description">Descripción</label>
+                <label htmlFor="description">Descripcion</label>
                 <textarea
                     id="description"
                     name="description"
-                    value={formData.description || ''}
+                    value={formData.description || ""}
                     onChange={handleChange}
                     required
-                ></textarea>
+                />
             </div>
 
-            {/* Campo Precio */}
             <div className="ts-form-group">
                 <label htmlFor="price">Precio</label>
                 <input
@@ -134,78 +85,70 @@ export default function ProductForm({ initialData = DEFAULT_PRODUCT_STATE, onSub
                     name="price"
                     value={formData.price || 0}
                     onChange={handleChange}
-                    min="0"
+                    min="0.01"
                     step="0.01"
                     required
                 />
             </div>
-            
-            {/* Campo Imágenes */}
-            <div className="ts-form-group">
-                <label htmlFor="images">Imágenes (Máx. 5)</label>
 
-                {/* Visualización y Eliminación de imágenes existentes (solo en edición) */}
-                {isEditing && formData.images && formData.images.length > 0 && (
-                    <div className="ts-image-preview">
-                        <h4>Imágenes Actuales:</h4>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                            {formData.images.map(img => {
-                                const isMarkedForDelete = imagesToDelete.includes(img.id);
-                                return (
-                                    <div key={img.id} style={{ position: 'relative', opacity: isMarkedForDelete ? 0.5 : 1 }}>
-                                        <img 
-                                            src={img.fullUrl} 
-                                            alt="Producto actual" 
-                                            style={{ width: '80px', height: '80px', objectFit: 'cover', border: isMarkedForDelete ? '2px solid red' : '1px solid #ccc' }}
-                                        />
-                                        <button 
-                                            type="button" 
-                                            onClick={() => handleRemoveExistingImage(img.id)}
-                                            style={{ position: 'absolute', top: 0, right: 0, background: isMarkedForDelete ? 'green' : 'red', color: 'white', border: 'none', cursor: 'pointer', padding: '2px 4px', fontSize: '10px' }}
-                                        >
-                                            {isMarkedForDelete ? 'Revertir' : 'X'}
-                                        </button>
-                                        {isMarkedForDelete && <small style={{ position: 'absolute', bottom: -15, left: 0, color: 'red', fontSize: '10px' }}>Eliminar</small>}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                )}
-                
+            <div className="ts-form-group">
+                <label htmlFor="stock">Stock</label>
                 <input
-                    type="file"
-                    id="images"
-                    name="images"
-                    onChange={handleFileChange}
-                    multiple
-                    accept="image/*"
+                    type="number"
+                    id="stock"
+                    name="stock"
+                    value={formData.stock || 0}
+                    onChange={handleChange}
+                    min="0"
+                    required
                 />
-                
-                {/* Visualización de archivos seleccionados */}
-                {selectedFiles.length > 0 && (
-                     <small style={{ display: 'block', marginTop: '5px' }}>
-                        Archivos nuevos listos para subir: **{selectedFiles.length}**
-                     </small>
-                )}
             </div>
-            
-            {/* Botones */}
+
+            <div className="ts-form-group">
+                <label htmlFor="category">Categoria interna</label>
+                <input
+                    type="text"
+                    id="category"
+                    name="category"
+                    value={formData.category || ""}
+                    onChange={handleChange}
+                    required
+                />
+            </div>
+
+            <div className="ts-form-group">
+                <label htmlFor="categoria">Categoria visible</label>
+                <input
+                    type="text"
+                    id="categoria"
+                    name="categoria"
+                    value={formData.categoria || ""}
+                    onChange={handleChange}
+                    required
+                />
+            </div>
+
+            {isEditing && (
+                <p style={{ color: "#9ca3af", fontSize: "14px" }}>
+                    La edicion de imagenes no esta disponible con el backend actual.
+                </p>
+            )}
+
             <div className="ts-form-actions">
-                <button 
-                    type="button" 
-                    onClick={onCancel} 
+                <button
+                    type="button"
+                    onClick={onCancel}
                     className="ts-btn ts-btn-secondary"
                     disabled={isSubmitting}
                 >
                     Cancelar
                 </button>
-                <button 
-                    type="submit" 
+                <button
+                    type="submit"
                     className="ts-btn ts-btn-primary"
                     disabled={isSubmitting}
                 >
-                    {isSubmitting ? 'Guardando...' : (isEditing ? 'Actualizar Producto' : 'Crear Producto')}
+                    {isSubmitting ? "Guardando..." : isEditing ? "Actualizar Producto" : "Crear Producto"}
                 </button>
             </div>
         </form>

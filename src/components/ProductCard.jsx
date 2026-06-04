@@ -1,8 +1,7 @@
 import { Link } from "react-router-dom";
-import { useContext } from "react";
-import { CartContext } from "../context/CartContext"; 
+import { useContext, useState } from "react";
+import { CartContext } from "../context/CartContext";
 
-// FUNCIÓN DE FORMATO: Pesos Mexicanos (MXN)
 const formatCurrency = (amount = 0) => {
   return new Intl.NumberFormat("es-MX", {
     style: "currency",
@@ -12,18 +11,16 @@ const formatCurrency = (amount = 0) => {
   }).format(amount);
 };
 
-// Función auxiliar para estrellas
 const renderStars = (rating) => {
-  const roundedRating = Math.round(rating || 0); 
-  const stars = '★'.repeat(roundedRating) + '☆'.repeat(5 - roundedRating);
-  return stars;
+  const roundedRating = Math.round(rating || 0);
+  return "★".repeat(roundedRating) + "☆".repeat(5 - roundedRating);
 };
 
-// Componente principal
 export default function ProductCard({ product, isAdmin, onEdit, onDelete }) {
-  const { addItemToCart } = useContext(CartContext) || {}; 
-  
-  // Cláusula de guarda
+  const { addItemToCart } = useContext(CartContext) || {};
+  const [imageRatio, setImageRatio] = useState("4 / 3");
+  const [isAdding, setIsAdding] = useState(false);
+
   if (!product || !product.id) {
     return null;
   }
@@ -31,64 +28,89 @@ export default function ProductCard({ product, isAdmin, onEdit, onDelete }) {
   const {
     id,
     name,
-    price, 
+    price,
     description,
     oldPrice,
     discount,
     reviewsCount,
     rating,
-    category, 
+    category,
+    categoria,
     images,
+    stock,
   } = product;
 
-  // Obtener la URL completa de la imagen
-  const mainImageUrl = (images && images.length > 0) 
-    ? images[0].fullUrl // Usamos la URL completa generada en Home.jsx
-    : "https://via.placeholder.com/600x400?text=Producto+Sin+Imagen"; 
-  
-  // Lógica defensiva de precios
+  const mainImageUrl =
+    images && images.length > 0
+      ? images[0].fullUrl
+      : "https://via.placeholder.com/600x400?text=Producto+Sin+Imagen";
+
   const currentPrice = price ?? 0;
-  const previousPrice = oldPrice; 
+  const previousPrice = oldPrice;
   const discountLabel = discount || null;
+  const displayCategory = categoria || category || "Sin Categoria";
+  const availableStock = Number(stock ?? 0);
+  const isOutOfStock = availableStock <= 0;
+  const isLowStock = availableStock > 0 && availableStock <= 5;
+  const shortDescription = description
+    ? description.length > 96
+      ? `${description.slice(0, 96)}...`
+      : description
+    : "Producto de alta calidad.";
 
-  const handleAddToCart = () => {
-    if (addItemToCart && product) {
-        
-      
-   
-      const productForCart = {
-          ...product,
-          image: mainImageUrl, 
-      };
-
-      addItemToCart(productForCart); // Enviamos el objeto corregido
+  const handleAddToCart = async () => {
+    if (isOutOfStock) {
+      return;
     }
+
+    if (addItemToCart && product) {
+      try {
+        setIsAdding(true);
+        await addItemToCart({
+          ...product,
+          image: mainImageUrl,
+        });
+      } catch (error) {
+        alert(error.response?.data?.message || "No se pudo agregar el producto al carrito.");
+      } finally {
+        setIsAdding(false);
+      }
+    }
+  };
+
+  const handleImageLoad = (event) => {
+    const { naturalWidth, naturalHeight } = event.currentTarget;
+
+    if (!naturalWidth || !naturalHeight) {
+      return;
+    }
+
+    const ratio = naturalWidth / naturalHeight;
+    const balancedRatio = Math.min(Math.max(ratio, 1.28), 1.5);
+    setImageRatio(`${balancedRatio} / 1`);
   };
 
   return (
     <article className="ts-product-card">
-      {discountLabel && (
-        <span className="ts-badge-discount">{discountLabel}</span>
-      )}
+      {discountLabel && <span className="ts-badge-discount">{discountLabel}</span>}
+      <span className={`ts-stock-badge ${isOutOfStock ? "is-out" : isLowStock ? "is-low" : "is-ok"}`}>
+        {isOutOfStock ? "Sin stock" : isLowStock ? `Quedan ${availableStock}` : "Disponible"}
+      </span>
 
-      <div className="ts-product-image">
+      <div className="ts-product-image" style={{ "--ts-product-image-ratio": imageRatio }}>
         <Link to={`/product/${id}`}>
-          <img src={mainImageUrl} alt={name} loading="lazy" />
+          <img src={mainImageUrl} alt={name} loading="lazy" onLoad={handleImageLoad} />
         </Link>
       </div>
 
       <div className="ts-product-body">
-        <p className="ts-product-category">
-          {(category || "Sin Categoría").toUpperCase()}
-        </p>
+        <p className="ts-product-category">{displayCategory.toUpperCase()}</p>
 
         <h3 className="ts-product-title">
           <Link to={`/product/${id}`}>{name}</Link>
         </h3>
 
-        <p className="ts-product-description">
-          {description || "Producto de alta calidad."}
-        </p>
+        <p className="ts-product-description">{shortDescription}</p>
 
         <div className="ts-product-meta">
           <div className="ts-product-price">
@@ -97,48 +119,42 @@ export default function ProductCard({ product, isAdmin, onEdit, onDelete }) {
               <span className="ts-price-old">{formatCurrency(previousPrice)}</span>
             )}
           </div>
+
           <div className="ts-product-rating">
-            <span className="ts-stars">{renderStars(rating)}</span> 
-            <span className="ts-reviews">
-              ({reviewsCount || 0})
-            </span>
+            <span className="ts-stars">{renderStars(rating)}</span>
+            <span className="ts-reviews">({reviewsCount || 0})</span>
           </div>
         </div>
 
-        {/* ZONA DE ACCIONES CONDICIONALES (ADMIN vs CLIENTE) */}
         <div className="ts-product-actions">
           {isAdmin ? (
-            // Controles para Administrador
             <>
-              <button 
-                onClick={onEdit} 
+              <button
+                onClick={onEdit}
                 className="ts-btn ts-btn-secondary ts-btn-full"
-                style={{ background: '#3b82f6', borderColor: '#2563eb' }}
+                style={{ background: "#3b82f6", borderColor: "#2563eb" }}
               >
-                <i className="fas fa-edit"></i> Editar
+                Editar
               </button>
-              <button 
-                onClick={onDelete} 
+              <button
+                onClick={onDelete}
                 className="ts-btn ts-btn-ghost ts-btn-full"
-                style={{ color: '#ef4444', borderColor: '#ef444455' }}
+                style={{ color: "#ef4444", borderColor: "#ef444455" }}
               >
-                <i className="fas fa-trash"></i> Eliminar
+                Eliminar
               </button>
             </>
           ) : (
-            // Botones públicos (Cliente)
             <>
-              <button 
+              <button
                 type="button"
                 className="ts-btn ts-btn-primary ts-btn-full"
                 onClick={handleAddToCart}
+                disabled={isOutOfStock || isAdding}
               >
-                <i className="fas fa-shopping-cart"></i> Agregar al carrito
+                {isOutOfStock ? "Agotado" : isAdding ? "Agregando..." : "Agregar al carrito"}
               </button>
-              <Link
-                to={`/product/${id}`}
-                className="ts-btn ts-btn-secondary ts-btn-full"
-              >
+              <Link to={`/product/${id}`} className="ts-btn ts-btn-secondary ts-btn-full">
                 Ver detalles
               </Link>
             </>
