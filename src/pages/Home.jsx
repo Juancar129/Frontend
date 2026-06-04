@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { API } from "../api/api";
+import { api } from "../api/api"; // 🔹 Usa api, no API
 import ProductCard from "../components/ProductCard";
 
 const BASE_URL = "http://localhost:3333";

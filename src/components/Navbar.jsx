@@ -9,71 +9,68 @@ export default function Navbar() {
     const isAdmin = user?.role === "admin";
     const displayName = user?.name?.trim() || user?.email?.split("@")[0] || "Usuario";
 
-    return (
-        <header className="ts-navbar">
-            <div className="ts-navbar-inner">
-                <Link to="/" className="ts-logo">
-                    <div className="ts-logo-icon">ZG</div>
-                    <span className="ts-logo-text">
-                        <span>ZenithGear</span>
-                    </span>
-                </Link>
+  return (
+    <header className="ts-navbar">
+      <div className="ts-navbar-inner">
+        {/* LOGO */}
+        <Link to="/" className="ts-logo">
+          <div className="ts-logo-icon">🧠</div>
+          <span className="ts-logo-text">
+            Trusted<span>Stack</span>
+          </span>
+        </Link>
 
-                <nav className="ts-nav-links">
-                    <NavLink to="/" className="ts-nav-link">
-                        Inicio
-                    </NavLink>
-                    <NavLink to="/category/PCs" className="ts-nav-link">
-                        PCs
-                    </NavLink>
-                    <NavLink to="/category/Laptops" className="ts-nav-link">
-                        Laptops
-                    </NavLink>
-                    <NavLink to="/category/Celulares" className="ts-nav-link">
-                        Celulares
-                    </NavLink>
-                    <NavLink to="/category/Componentes" className="ts-nav-link">
-                        Componentes
-                    </NavLink>
-                </nav>
+        {/* LINKS PRINCIPALES */}
+        <nav className="ts-nav-links">
+          <NavLink to="/" className="ts-nav-link">
+            Inicio
+          </NavLink>
+          <button className="ts-nav-link ts-nav-link-btn" type="button">
+            PCs
+          </button>
+          <button className="ts-nav-link ts-nav-link-btn" type="button">
+            Laptops
+          </button>
+          <button className="ts-nav-link ts-nav-link-btn" type="button">
+            Celulares
+          </button>
+          <button className="ts-nav-link ts-nav-link-btn" type="button">
+            Componentes
+          </button>
+        </nav>
 
-                <div className="ts-nav-actions">
-                    {isAdmin && (
-                        <Link to="/admin" className="ts-btn ts-btn-secondary ts-btn-nav">
-                            Dashboard Admin
-                        </Link>
-                    )}
+        {/* ACCIONES DERECHA */}
+        <div className="ts-nav-actions">
+          {user ? (
+            <>
+              <span className="ts-user-label">
+                {user.email}
+              </span>
+              <button onClick={logout} className="ts-btn ts-btn-ghost">
+                Cerrar sesión
+              </button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="ts-nav-link ts-nav-auth">
+                Iniciar Sesión
+              </Link>
+              <Link to="/register" className="ts-btn ts-btn-primary">
+                Registrarse
+              </Link>
+            </>
+          )}
 
-                    <NavLink to="/contacto" className="ts-nav-link">
-                        Contacto
-                    </NavLink>
+          <a href="#contacto" className="ts-nav-link ts-contact-link">
+            Contacto
+          </a>
 
-                    {user ? (
-                        <div className="ts-user-pill">
-                            <span className="ts-user-label">
-                                Hola, {displayName}
-                            </span>
-                            <button onClick={logout} className="ts-btn ts-btn-ghost ts-btn-nav">
-                                Cerrar sesion
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="ts-auth-actions">
-                            <Link to="/login" className="ts-nav-link ts-nav-auth">
-                                Iniciar sesion
-                            </Link>
-                            <Link to="/register" className="ts-btn ts-btn-primary ts-btn-nav">
-                                Registrarse
-                            </Link>
-                        </div>
-                    )}
-
-                    <Link to="/cart" className="ts-cart">
-                        <span className="ts-cart-icon">Carrito</span>
-                        <span className="ts-cart-badge">{itemCount || 0}</span>
-                    </Link>
-                </div>
-            </div>
-        </header>
-    );
+          <Link to="/cart" className="ts-cart">
+            <span className="ts-cart-icon">🛒</span>
+            <span className="ts-cart-badge">3</span>
+          </Link>
+        </div>
+      </div>
+    </header>
+  );
 }

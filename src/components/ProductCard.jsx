@@ -25,6 +25,8 @@ export default function ProductCard({ product, isAdmin, onEdit, onDelete }) {
     return null;
   }
 
+
+export default function ProductCard({ product }) {
   const {
     id,
     name,
